@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adavit Arts | Designer Showcase</title>
+    <title>Adavit Arts | Elite Showcase</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Playfair+Display:ital,wght@1,900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #ffffff;
-            --text: #000000;
+            --text: #0b0b0b;
             --secondary: #666666;
-            --glass: rgba(255, 255, 255, 0.8);
-            --blob-opacity: 0.08;
+            --glass: rgba(255, 255, 255, 0.75);
+            --blob-opacity: 0.12;
+            --accent: #ff3e3e;
         }
 
         [data-theme="dark"] {
-            --bg: #0a0a0a;
+            --bg: #050505;
             --text: #ffffff;
-            --secondary: #a0a0a0;
-            --glass: rgba(15, 15, 15, 0.8);
-            --blob-opacity: 0.15;
+            --secondary: #888888;
+            --glass: rgba(10, 10, 10, 0.75);
+            --blob-opacity: 0.2;
         }
+
+        * { cursor: none !important; box-sizing: border-box; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -28,117 +31,134 @@
             color: var(--text);
             margin: 0;
             overflow-x: hidden;
-            transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.8s ease;
         }
 
-        /* --- Living Parallax Background --- */
-        .parallax-container {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: none;
+        /* --- Custom Cursor --- */
+        #cursor {
+            width: 8px; height: 8px; background: var(--accent);
+            border-radius: 50%; position: fixed; pointer-events: none;
+            z-index: 9999; transition: transform 0.1s ease;
+        }
+        #cursor-follower {
+            width: 40px; height: 40px; border: 1px solid var(--text);
+            border-radius: 50%; position: fixed; pointer-events: none;
+            z-index: 9998; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
+        /* --- Background --- */
+        .parallax-container { position: fixed; inset: 0; z-index: -1; }
         .blob {
-            position: absolute;
-            width: 80vh;
-            height: 80vh;
-            border-radius: 50%;
-            filter: blur(120px);
+            position: absolute; width: 60vw; height: 60vw;
+            border-radius: 50%; filter: blur(100px);
             opacity: var(--blob-opacity);
-            animation: colorShift 15s infinite alternate;
-            transition: transform 0.3s ease-out;
+            animation: drift 25s infinite alternate linear;
+        }
+        #blob1 { top: -10%; left: -10%; background: var(--accent); }
+        #blob2 { bottom: -10%; right: -10%; background: #3e8dff; animation-delay: -5s; }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(15%, 15%) rotate(180deg); }
         }
 
-        #blob1 { top: -10%; right: -10%; background: #ff3e3e; }
-        #blob2 { bottom: -10%; left: -10%; background: #3e8dff; animation-delay: -7s; }
-
-        @keyframes colorShift {
-            0% { background: #ff3e3e; transform: scale(1); }
-            33% { background: #3effde; transform: scale(1.1); }
-            66% { background: #ff3ee0; transform: scale(0.9); }
-            100% { background: #3e8dff; transform: scale(1); }
-        }
-
-        /* --- UI Elements --- */
         header {
             padding: 30px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            position: fixed; top: 0; width: 100%; z-index: 1000;
         }
 
         .hero {
-            height: 70vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
         }
 
         .hero h1 {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(3rem, 10vw, 6rem);
-            font-style: italic;
-            margin: 0;
+            font-size: clamp(3.5rem, 12vw, 9rem);
+            margin: 10px 0; font-style: italic;
         }
 
+        /* --- Gallery Modes --- */
         #gallery {
-            padding: 0 5% 100px;
-            column-count: 4;
-            column-gap: 20px;
+            padding: 0 5% 150px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 40px;
+            transition: all 0.5s ease;
+        }
+
+        /* Horizontal Mode Class */
+        body.horizontal-mode #gallery {
+            display: flex;
+            overflow-x: auto;
+            padding: 100px 5%;
+            height: 80vh;
+            gap: 50px;
+            scroll-snap-type: x mandatory;
+        }
+        
+        body.horizontal-mode .item {
+            flex: 0 0 600px;
+            scroll-snap-align: center;
         }
 
         .item {
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 20px;
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
+            opacity: 0; transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            position: relative; border-radius: 4px; overflow: hidden;
             background: var(--glass);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
         }
 
-        .item img { width: 100%; display: block; transition: 0.5s ease; cursor: zoom-in; }
-        .item:hover img { transform: scale(1.04); }
+        .item.reveal { opacity: 1; transform: translateY(0); }
 
-        .like-badge {
-            position: absolute; top: 12px; right: 12px;
-            background: rgba(0,0,0,0.5); color: white;
-            padding: 5px 12px; border-radius: 20px;
-            display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700;
+        .item img { 
+            width: 100%; height: 100%; object-fit: cover;
+            display: block; transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        .overlay {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.2);
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            opacity: 0; transition: 0.3s ease;
-        }
-        .item:hover .overlay { opacity: 1; }
+        .item:hover img { transform: scale(1.08); }
 
-        .btn {
-            background: #fff; border: none; width: 45px; height: 45px;
-            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        /* --- Controls Bar --- */
+        .controls {
+            position: fixed; bottom: 40px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 12px 25px;
+            border-radius: 100px;
+            display: flex; gap: 20px;
+            z-index: 1001;
+            border: 1px solid rgba(125,125,125,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
 
-        /* Preview Lightbox */
+        .ctrl-btn {
+            background: none; border: none; color: var(--text);
+            font-size: 0.65rem; font-weight: 800; letter-spacing: 2px;
+            text-transform: uppercase; padding: 8px 15px;
+            transition: opacity 0.3s;
+        }
+
+        /* --- Lightbox --- */
         #preview {
             display: none; position: fixed; inset: 0; background: var(--bg);
             z-index: 2000; justify-content: center; align-items: center;
         }
-        #preview img { max-width: 90%; max-height: 90vh; border-radius: 10px; }
+        #preview img { max-width: 85%; max-height: 85vh; object-fit: contain; }
 
-        @media (max-width: 1000px) { #gallery { column-count: 2; } }
+        @media (max-width: 768px) {
+            #gallery { grid-template-columns: 1fr; }
+            .controls { bottom: 20px; width: 90%; justify-content: space-around; }
+            #cursor, #cursor-follower { display: none; }
+            body.horizontal-mode .item { flex: 0 0 85vw; }
+        }
     </style>
 </head>
 <body data-theme="light">
+
+    <div id="cursor"></div>
+    <div id="cursor-follower"></div>
 
     <div class="parallax-container">
         <div class="blob" id="blob1"></div>
@@ -146,16 +166,21 @@
     </div>
 
     <header>
-        <div style="font-weight: 800; letter-spacing: 4px; font-size: 0.7rem;">Adavit Arts</div>
-        <button onclick="document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light')" style="background:none; border:1px solid var(--text); color:var(--text); padding:6px 15px; border-radius:50px; font-size:0.6rem; cursor:pointer;">THEME</button>
+        <div style="font-weight: 800; letter-spacing: 5px; font-size: 0.7rem;">ADAVIT ARTS</div>
+        <button class="ctrl-btn" onclick="toggleTheme()" style="border: 1px solid var(--text); border-radius: 20px;">Theme</button>
     </header>
 
     <section class="hero">
-        <span style="letter-spacing: 5px; color:var(--secondary); font-size: 0.7rem; text-transform: uppercase;">A Visual Journey</span>
-        <h1>Curated Works.</h1>
+        <span style="letter-spacing: 10px; color:var(--secondary); font-size: 0.7rem;">CURATED GALLERY</span>
+        <h1>Visionary.</h1>
     </section>
 
     <main id="gallery"></main>
+
+    <div class="controls">
+        <button class="ctrl-btn" onclick="shuffleGallery()">Shuffle</button>
+        <button class="ctrl-btn" onclick="toggleLayout()" id="layout-toggle">Cinema Mode</button>
+    </div>
 
     <div id="preview" onclick="this.style.display='none'">
         <img id="preview-img" src="">
@@ -163,42 +188,66 @@
 
     <script>
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTWJY4sKn8qLPfA1apROS1GdaJ40e471kbOJmk5QwZTHLw85G07KueSqjTuBt4xptx0sPYuKxbfoeWJ/pub?output=csv';
+        let rawData = [];
 
-        // Parallax Movement
-        window.addEventListener('scroll', () => {
-            const y = window.pageYOffset;
-            document.getElementById('blob1').style.transform = `translate(${y * 0.1}px, ${y * 0.2}px)`;
-            document.getElementById('blob2').style.transform = `translate(${y * -0.1}px, ${y * -0.1}px)`;
+        // Cursor Logic
+        const cursor = document.getElementById('cursor');
+        const follower = document.getElementById('cursor-follower');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+            follower.style.transform = `translate3d(${e.clientX - 20}px, ${e.clientY - 20}px, 0)`;
         });
+
+        function toggleTheme() {
+            const body = document.body;
+            body.setAttribute('data-theme', body.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        }
+
+        function toggleLayout() {
+            document.body.classList.toggle('horizontal-mode');
+            const btn = document.getElementById('layout-toggle');
+            btn.innerText = document.body.classList.contains('horizontal-mode') ? 'Grid Mode' : 'Cinema Mode';
+            window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+        }
 
         async function load() {
             const gal = document.getElementById('gallery');
             try {
                 const res = await fetch(SHEET_URL);
                 const text = await res.text();
-                const rows = text.split(/\r?\n/).slice(1);
-                gal.innerHTML = '';
-                rows.forEach(row => {
-                    const cols = row.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                    if (!cols[0]) return;
-                    const div = document.createElement('div');
-                    div.className = 'item';
-                    div.innerHTML = `
-                        <div class="like-badge">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="#ff3e3e"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                            <span>${cols[2] || 0}</span>
-                        </div>
-                        <img src="${cols[0]}" onclick="view('${cols[0]}')" loading="lazy">
-                        <div class="overlay">
-                            <button class="btn" onclick="share(event, '${cols[1]}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
-                        </div>`;
-                    gal.appendChild(div);
-                });
-            } catch (e) { gal.innerHTML = 'Gallery loading...'; }
+                rawData = text.split(/\r?\n/).slice(1)
+                             .map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()))
+                             .filter(cols => cols[0]);
+                render(rawData);
+            } catch (e) { gal.innerHTML = 'Error loading gallery.'; }
         }
 
-        function view(u) { document.getElementById('preview-img').src = u; document.getElementById('preview').style.display = 'flex'; }
-        function share(e, u) { e.stopPropagation(); if (navigator.share) navigator.share({url: u}); else { navigator.clipboard.writeText(u); alert('Link Copied'); } }
+        function render(data) {
+            const gal = document.getElementById('gallery');
+            gal.innerHTML = '';
+            data.forEach((cols, index) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.style.transitionDelay = `${(index % 4) * 0.1}s`;
+                div.innerHTML = `<img src="${cols[0]}" onclick="view('${cols[0]}')" loading="lazy">`;
+                gal.appendChild(div);
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('reveal'); });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.item').forEach(i => observer.observe(i));
+        }
+
+        function shuffleGallery() {
+            const shuffled = [...rawData].sort(() => Math.random() - 0.5);
+            render(shuffled);
+        }
+
+        function view(u) { 
+            document.getElementById('preview-img').src = u; 
+            document.getElementById('preview').style.display = 'flex'; 
+        }
 
         load();
     </script>
