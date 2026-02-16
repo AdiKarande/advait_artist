@@ -79,29 +79,20 @@
             margin: 10px 0; font-style: italic;
         }
 
-        /* --- Gallery Modes --- */
+        /* --- Gallery --- */
         #gallery {
             padding: 0 5% 150px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 40px;
-            transition: all 0.5s ease;
         }
 
-        /* Horizontal Mode Class */
         body.horizontal-mode #gallery {
-            display: flex;
-            overflow-x: auto;
-            padding: 100px 5%;
-            height: 80vh;
-            gap: 50px;
-            scroll-snap-type: x mandatory;
+            display: flex; overflow-x: auto; padding: 100px 5%;
+            height: 80vh; gap: 50px; scroll-snap-type: x mandatory;
         }
         
-        body.horizontal-mode .item {
-            flex: 0 0 600px;
-            scroll-snap-align: center;
-        }
+        body.horizontal-mode .item { flex: 0 0 600px; scroll-snap-align: center; }
 
         .item {
             opacity: 0; transform: translateY(40px);
@@ -119,16 +110,37 @@
 
         .item:hover img { transform: scale(1.08); }
 
-        /* --- Controls Bar --- */
+        /* --- Like Badge --- */
+        .like-badge {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0,0,0,0.6); color: white;
+            padding: 6px 14px; border-radius: 30px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; font-weight: 700;
+            z-index: 10; backdrop-filter: blur(5px);
+            pointer-events: none;
+        }
+
+        /* --- Overlay --- */
+        .overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: 0.4s ease; backdrop-filter: blur(2px);
+        }
+        .item:hover .overlay { opacity: 1; }
+
+        .btn-share {
+            background: #fff; border: none; width: 45px; height: 45px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- UI Controls --- */
         .controls {
             position: fixed; bottom: 40px; left: 50%;
             transform: translateX(-50%);
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            padding: 12px 25px;
-            border-radius: 100px;
-            display: flex; gap: 20px;
-            z-index: 1001;
+            background: var(--glass); backdrop-filter: blur(20px);
+            padding: 12px 25px; border-radius: 100px;
+            display: flex; gap: 20px; z-index: 1001;
             border: 1px solid rgba(125,125,125,0.2);
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
@@ -137,10 +149,8 @@
             background: none; border: none; color: var(--text);
             font-size: 0.65rem; font-weight: 800; letter-spacing: 2px;
             text-transform: uppercase; padding: 8px 15px;
-            transition: opacity 0.3s;
         }
 
-        /* --- Lightbox --- */
         #preview {
             display: none; position: fixed; inset: 0; background: var(--bg);
             z-index: 2000; justify-content: center; align-items: center;
@@ -149,9 +159,7 @@
 
         @media (max-width: 768px) {
             #gallery { grid-template-columns: 1fr; }
-            .controls { bottom: 20px; width: 90%; justify-content: space-around; }
             #cursor, #cursor-follower { display: none; }
-            body.horizontal-mode .item { flex: 0 0 85vw; }
         }
     </style>
 </head>
@@ -190,7 +198,6 @@
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTWJY4sKn8qLPfA1apROS1GdaJ40e471kbOJmk5QwZTHLw85G07KueSqjTuBt4xptx0sPYuKxbfoeWJ/pub?output=csv';
         let rawData = [];
 
-        // Cursor Logic
         const cursor = document.getElementById('cursor');
         const follower = document.getElementById('cursor-follower');
         document.addEventListener('mousemove', (e) => {
@@ -207,11 +214,9 @@
             document.body.classList.toggle('horizontal-mode');
             const btn = document.getElementById('layout-toggle');
             btn.innerText = document.body.classList.contains('horizontal-mode') ? 'Grid Mode' : 'Cinema Mode';
-            window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
         }
 
         async function load() {
-            const gal = document.getElementById('gallery');
             try {
                 const res = await fetch(SHEET_URL);
                 const text = await res.text();
@@ -219,7 +224,7 @@
                              .map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()))
                              .filter(cols => cols[0]);
                 render(rawData);
-            } catch (e) { gal.innerHTML = 'Error loading gallery.'; }
+            } catch (e) { document.getElementById('gallery').innerHTML = 'Error loading gallery.'; }
         }
 
         function render(data) {
@@ -229,7 +234,17 @@
                 const div = document.createElement('div');
                 div.className = 'item';
                 div.style.transitionDelay = `${(index % 4) * 0.1}s`;
-                div.innerHTML = `<img src="${cols[0]}" onclick="view('${cols[0]}')" loading="lazy">`;
+                div.innerHTML = `
+                    <div class="like-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#ff3e3e"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <span>${cols[2] || 0}</span>
+                    </div>
+                    <img src="${cols[0]}" onclick="view('${cols[0]}')" loading="lazy">
+                    <div class="overlay">
+                        <button class="btn-share" onclick="share(event, '${cols[1]}')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+                        </button>
+                    </div>`;
                 gal.appendChild(div);
             });
 
@@ -244,9 +259,12 @@
             render(shuffled);
         }
 
-        function view(u) { 
-            document.getElementById('preview-img').src = u; 
-            document.getElementById('preview').style.display = 'flex'; 
+        function view(u) { document.getElementById('preview-img').src = u; document.getElementById('preview').style.display = 'flex'; }
+        
+        function share(e, u) { 
+            e.stopPropagation(); 
+            if (navigator.share) navigator.share({url: u}); 
+            else { navigator.clipboard.writeText(u); alert('Link Copied'); } 
         }
 
         load();
