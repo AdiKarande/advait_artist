@@ -195,6 +195,59 @@
     </div>
 
     <script>
+        // Add this variable at the top of your script section
+const APPS_SCRIPT_URL = 'YOUR_DEPLOYED_WEB_APP_URL'; 
+
+function render(data) {
+    const gal = document.getElementById('gallery');
+    gal.innerHTML = '';
+    data.forEach((cols, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.style.transitionDelay = `${(index % 4) * 0.1}s`;
+        
+        // We added: onclick="addLike(this, '${cols[0]}')" 
+        // and pointer-events: auto to the badge
+        div.innerHTML = `
+            <div class="like-badge" onclick="addLike(this, '${cols[0]}')" style="cursor: pointer; pointer-events: auto;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#ff3e3e"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span class="like-count">${cols[2] || 0}</span>
+            </div>
+            <img src="${cols[0]}" onclick="view('${cols[0]}')" loading="lazy">
+            <div class="overlay">
+                <button class="btn-share" onclick="share(event, '${cols[1]}')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+                </button>
+            </div>`;
+        gal.appendChild(div);
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('reveal'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.item').forEach(i => observer.observe(i));
+}
+
+// New Function to talk to your Google Apps Script
+async function addLike(element, imgUrl) {
+    const countSpan = element.querySelector('.like-count');
+    const originalCount = countSpan.innerText;
+    
+    // UI Feedback: Optimistic update
+    countSpan.innerText = parseInt(originalCount) + 1;
+    element.style.transform = "scale(1.2)";
+    setTimeout(() => element.style.transform = "scale(1)", 200);
+
+    try {
+        const response = await fetch(`${APPS_SCRIPT_URL}?img=${encodeURIComponent(imgUrl)}&action=like`);
+        if (!response.ok) throw new Error();
+        const newCount = await response.text();
+        countSpan.innerText = newCount; // Sync with actual server value
+    } catch (e) {
+        console.error("Like failed:", e);
+        countSpan.innerText = originalCount; // Revert on error
+    }
+}
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTWJY4sKn8qLPfA1apROS1GdaJ40e471kbOJmk5QwZTHLw85G07KueSqjTuBt4xptx0sPYuKxbfoeWJ/pub?output=csv';
         let rawData = [];
 
